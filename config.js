@@ -1,4 +1,4 @@
 window.KOROLEK_CONFIG = {
-  supabaseUrl: "",
+  supabaseUrl: "https://tlzqfmrorcxpwjygvhpw.supabase.co",
   supabaseAnonKey: ""
 };
