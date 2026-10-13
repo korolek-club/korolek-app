@@ -1,28 +1,167 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Королёк — управление клубом</title>
 <style>
-body{margin:0;background:#171321;color:#fff;font-family:Arial,sans-serif;padding:24px}
-h1{color:#e6b86d}
-h2{font-size:19px}
-.card{background:#292337;border-radius:16px;padding:18px;margin:12px 0}
-.muted{color:#bfb6ca}
-.tag{color:#8fe0aa}
+*{box-sizing:border-box}
+body{margin:0;background:#171321;color:#f8f5ff;font:16px Arial,sans-serif}
+header{padding:24px 18px;background:#211a2e}
+h1{color:#e6b86d;margin:0 0 8px}
+h2{font-size:21px;margin:25px 0 14px}
+main{max-width:850px;margin:auto;padding:18px}
+small,.muted{color:#bdb5c9}
+nav{display:flex;gap:8px;overflow:auto;padding:14px 0}
+button{border:0;border-radius:10px;padding:12px 15px;font-size:15px;cursor:pointer}
+nav button{background:#33283f;color:white;white-space:nowrap}
+nav button.active,.primary{background:#e6b86d;color:#211526;font-weight:bold}
+.card{background:#2a2337;padding:17px;margin:12px 0;border-radius:16px}
+.free{color:#90e6aa}
+.busy{color:#f4bc83}
+input,select{width:100%;padding:12px;margin:6px 0 12px;background:#fff;color:#222;border:0;border-radius:8px;font-size:16px}
+label{display:block;margin-top:8px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.hidden{display:none}
+.danger{background:#69333c;color:#fff}
 </style>
 </head>
 <body>
+<header>
 <h1>♛ Королёк</h1>
-<p class="muted">Панель управления караоке-клубом</p>
+<div class="muted">Управление караоке-клубом</div>
+</header>
+<main>
+<nav>
+<button class="active" onclick="tab('rooms',this)">Залы</button>
+<button onclick="tab('bookings',this)">Брони</button>
+<button onclick="tab('guests',this)">Гости</button>
+<button onclick="tab('hookahs',this)">Кальяны</button>
+<button onclick="tab('reports',this)">Отчёты</button>
+</nav>
+<section id="rooms">
 <h2>Наши залы</h2>
-<div class="card">Малахит · 10 гостей <span class="tag">● Свободен</span></div>
-<div class="card">Кобальт · 4 гостя <span class="tag">● Свободен</span></div>
-<div class="card">Терракота · 4 гостя <span class="tag">● Свободен</span></div>
-<div class="card">Лиловый · 10 гостей <span class="tag">● Свободен</span></div>
-<div class="card">Мокко · 12 гостей <span class="tag">● Свободен</span></div>
-<div class="card">Вишня · 7 гостей <span class="tag">● Свободен</span></div>
-<p class="muted">Это первая демонстрационная страница. Бронирования и данные подключим позже.</p>
+<div id="roomList"></div>
+</section>
+<section id="bookings" class="hidden">
+<h2>Новое бронирование</h2>
+<div class="card">
+<label>Зал<select id="room"></select></label>
+<label>Имя гостя<input id="name" placeholder="Имя"></label>
+<label>Телефон<input id="phone" type="tel" placeholder="+7..."></label>
+<label>Дата<input id="date" type="date"></label>
+<label>Время<input id="time" type="time"></label>
+<label>Часов<input id="hours" type="number" min="1" value="1"></label>
+<label>Депозит, ₽<input id="deposit" type="number" value="1000"></label>
+<button class="primary" onclick="addBooking()">Сохранить бронь</button>
+</div>
+<h2>Список бронирований</h2>
+<div id="bookingList"></div>
+</section>
+<section id="guests" class="hidden">
+<h2>Гости</h2><div id="guestList"></div>
+</section>
+<section id="hookahs" class="hidden">
+<h2>Добавить кальян</h2>
+<div class="card">
+<label>Зал<select id="hookahRoom"></select></label>
+<label>Количество<input id="hookahCount" type="number" min="1" value="1"></label>
+<button class="primary" onclick="addHookah()">Добавить</button>
+</div>
+<div id="hookahList"></div>
+</section>
+<section id="reports" class="hidden">
+<h2>Отчёт</h2><div id="reportList"></div>
+</section>
+<p class="muted"><small>Демонстрационная версия. Данные сохраняются только в этом браузере. Не используйте для реальных персональных данных гостей.</small></p>
+</main>
+<script>
+const rooms=[
+{name:"Малахит",capacity:10},
+{name:"Кобальт",capacity:4},
+{name:"Терракота",capacity:4},
+{name:"Лиловый",capacity:10},
+{name:"Мокко",capacity:12},
+{name:"Вишня",capacity:7}
+];
+let bookings=JSON.parse(localStorage.getItem("korolek_bookings")||"[]");
+let hookahs=JSON.parse(localStorage.getItem("korolek_hookahs")||"[]");
+const el=id=>document.getElementById(id);
+const safe=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function save(){
+localStorage.setItem("korolek_bookings",JSON.stringify(bookings));
+localStorage.setItem("korolek_hookahs",JSON.stringify(hookahs));
+render();
+}
+function tab(id,btn){
+document.querySelectorAll("main section").forEach(x=>x.classList.add("hidden"));
+el(id).classList.remove("hidden");
+document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+btn.classList.add("active");
+render();
+}
+function addBooking(){
+const b={
+id:Date.now(),
+room:el("room").value,
+name:el("name").value.trim(),
+phone:el("phone").value.trim(),
+date:el("date").value,
+time:el("time").value,
+hours:Number(el("hours").value),
+deposit:Number(el("deposit").value)
+};
+if(!b.name||!b.phone||!b.date||!b.time||b.hours<1){alert("Заполните все поля");return}
+const start=new Date(b.date+"T"+b.time).getTime();
+const end=start+b.hours*3600000+15*60000;
+const overlap=bookings.some(x=>{
+if(x.room!==b.room)return false;
+const s=new Date(x.date+"T"+x.time).getTime();
+const e=s+x.hours*3600000+15*60000;
+return start<e&&end>s;
+});
+if(overlap){alert("Зал занят в это время с учётом 15 минут на уборку");return}
+bookings.push(b);
+el("name").value="";
+el("phone").value="";
+save();
+alert("Бронь сохранена");
+}
+function removeBooking(id){
+if(confirm("Удалить бронирование?")){
+bookings=bookings.filter(x=>x.id!==id);save();
+}
+}
+function addHookah(){
+const count=Number(el("hookahCount").value);
+if(!Number.isInteger(count)||count<1){alert("Укажите количество");return}
+hookahs.push({id:Date.now(),room:el("hookahRoom").value,count,price:1500*count});
+save();
+}
+function render(){
+el("roomList").innerHTML=rooms.map(r=>{
+const today=new Date().toLocaleDateString("en-CA");
+const active=bookings.some(b=>{
+if(b.room!==r.name)return false;
+const now=Date.now(),start=new Date(b.date+"T"+b.time).getTime();
+return now>=start&&now<start+b.hours*3600000;
+});
+return `<div class="card row"><div><b>${r.name}</b><br><small>До ${r.capacity} гостей</small></div><span class="${active?"busy":"free"}">${active?"● Занят":"● Свободен"}</span></div>`;
+}).join("");
+el("bookingList").innerHTML=bookings.length?bookings.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(b=>`<div class="card"><b>${safe(b.room)}</b> — ${safe(b.date)} ${safe(b.time)}<p>${safe(b.name)} · ${safe(b.phone)}</p><small>${b.hours} ч · депозит ${b.deposit} ₽</small><p><button class="danger" onclick="removeBooking(${b.id})">Удалить</button></p></div>`).join(""):"<p class='muted'>Бронирований пока нет</p>";
+const guests=[...new Map(bookings.map(b=>[b.phone,b])).values()];
+el("guestList").innerHTML=guests.length?guests.map(g=>`<div class="card"><b>${safe(g.name)}</b><br>${safe(g.phone)}</div>`).join(""):"<p class='muted'>Гостей пока нет</p>";
+el("hookahList").innerHTML=hookahs.length?hookahs.map(h=>`<div class="card">${safe(h.room)} · ${h.count} шт. · ${h.price} ₽</div>`).join(""):"<p class='muted'>Заказов пока нет</p>";
+const total=hookahs.reduce((s,h)=>s+h.price,0);
+el("reportList").innerHTML=`<div class="card">Бронирований: <b>${bookings.length}</b></div><div class="card">Гостей: <b>${guests.length}</b></div><div class="card">Кальянов: <b>${hookahs.reduce((s,h)=>s+h.count,0)}</b></div><div class="card">Сумма кальянов: <b>${total} ₽</b></div>`;
+}
+rooms.forEach(r=>{
+el("room").add(new Option(r.name,r.name));
+el("hookahRoom").add(new Option(r.name,r.name));
+});
+el("date").value=new Date().toLocaleDateString("en-CA");
+render();
+</script>
 </body>
 </html>
