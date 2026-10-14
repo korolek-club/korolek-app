@@ -245,5 +245,23 @@ db.auth.onAuthStateChange((event, session) => {
   if (appContent) appContent.style.display = session ? "" : "none";
 });  
 </script>
+<script>
+const loginBox = document.getElementById("loginBox");
+
+const logoutButton = document.createElement("button");
+logoutButton.textContent = "Выйти";
+logoutButton.style.margin = "20px";
+logoutButton.style.display = "none";
+logoutButton.onclick = async () => {
+  const { error } = await db.auth.signOut();
+  if (error) alert("Ошибка выхода: " + error.message);
+};
+loginBox.insertAdjacentElement("afterend", logoutButton);
+
+db.auth.onAuthStateChange((event, session) => {
+  loginBox.style.display = session ? "none" : "";
+  logoutButton.style.display = session ? "" : "none";
+});
+</script>  
 </body>
 </html>
