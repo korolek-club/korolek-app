@@ -238,5 +238,12 @@ async function saveNewPassword() {
   message.textContent = "Пароль успешно изменён!";
 }
 </script>  
+<script>
+const appContent = document.querySelector("main");
+if (appContent) appContent.style.display = "none";  
+db.auth.onAuthStateChange((event, session) => {
+  if (appContent) appContent.style.display = session ? "" : "none";
+});  
+</script>
 </body>
 </html>
