@@ -203,5 +203,40 @@ async function loginStaff() {
   }
 }
 </script>  
+<div id="resetBox" class="card" style="max-width:400px;margin:20px auto;display:none">
+  <h2>Установить новый пароль</h2>
+  <input id="newPassword" type="password" placeholder="Новый пароль">
+  <button onclick="saveNewPassword()">Сохранить пароль</button>
+  <p id="resetMessage"></p>
+</div>
+<script>
+db.auth.onAuthStateChange((event) => {
+  if (event === "PASSWORD_RECOVERY") {
+    document.getElementById("resetBox").style.display = "block";
+    document.getElementById("loginBox").style.display = "none";
+  }
+});
+
+async function saveNewPassword() {
+  const password = document.getElementById("newPassword").value;
+  const message = document.getElementById("resetMessage");
+
+  if (password.length < 8) {
+    message.textContent = "Пароль должен содержать минимум 8 символов";
+    return;
+  }
+
+  message.textContent = "Сохраняем пароль...";
+  const { error } = await db.auth.updateUser({ password });
+
+  if (error) {
+    message.textContent = "Ошибка: " + error.message;
+    return;
+  }
+
+  document.getElementById("newPassword").value = "";
+  message.textContent = "Пароль успешно изменён!";
+}
+</script>  
 </body>
 </html>
