@@ -171,5 +171,37 @@ const db = window.supabase.createClient(
   window.KOROLEK_CONFIG.supabaseAnonKey
 );
 </script>  
+<div id="loginBox" class="card" style="max-width:400px;margin:20px auto">
+  <h2>Вход для сотрудников</h2>
+  <input id="loginEmail" type="email" placeholder="Электронная почта">
+  <input id="loginPassword" type="password" placeholder="Пароль">
+  <button onclick="loginStaff()">Войти</button>
+  <p id="loginMessage"></p>
+</div>  
+<script>
+async function loginStaff() {
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const message = document.getElementById("loginMessage");
+
+  message.textContent = "Проверяем данные...";
+
+  try {
+    const { error } = await db.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+    if (error) {
+      message.textContent = "Не удалось войти. Проверьте почту и пароль.";
+      return;
+    }
+
+    message.textContent = "Вход выполнен успешно!";
+  } catch (e) {
+    message.textContent = "Ошибка подключения. Попробуйте позже.";
+  }
+}
+</script>  
 </body>
 </html>
