@@ -165,5 +165,11 @@ el("hookahRoom").add(new Option(r.name,r.name));
 el("date").value=new Date().toLocaleDateString("en-CA");
 render();
 </script>
+<script>
+const db = window.supabase.createClient(
+  window.KOROLEK_CONFIG.supabaseUrl,
+  window.KOROLEK_CONFIG.supabaseAnonKey
+);
+</script>  
 </body>
 </html>
