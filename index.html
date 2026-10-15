@@ -263,5 +263,28 @@ db.auth.onAuthStateChange((event, session) => {
   logoutButton.style.display = session ? "" : "none";
 });
 </script>
+<script>
+async function loadRoomsFromDatabase() {
+  const { data, error } = await db
+    .from("rooms")
+    .select("id, name");
+
+  if (error) {
+    console.error("Ошибка загрузки залов:", error.message);
+    return;
+  }
+
+  window.roomIds = {};
+  data.forEach(room => {
+    window.roomIds[room.name] = room.id;
+  });
+
+  console.log("Залы подключены к базе");
+}
+
+db.auth.onAuthStateChange((event, session) => {
+  if (session) loadRoomsFromDatabase();
+});
+</script>  
 </body>
 </html>
