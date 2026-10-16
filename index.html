@@ -132,10 +132,23 @@ el("phone").value="";
 save();
 alert("Бронь сохранена");
 }
-function removeBooking(id){
-if(confirm("Удалить бронирование?")){
-bookings=bookings.filter(x=>x.id!==id);save();
-}
+
+async function removeBooking(id) {
+  if (!confirm("Удалить бронирование?")) return;
+
+  const { error } = await db
+    .from("bookings")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("Не удалось удалить бронь: " + error.message);
+    return;
+  }
+
+  bookings = bookings.filter(b => b.id !== id);
+  save();
+  alert("Бронирование удалено");
 }
 function addHookah(){
 const count=Number(el("hookahCount").value);
