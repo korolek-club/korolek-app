@@ -288,5 +288,46 @@ db.auth.onAuthStateChange((event, session) => {
   if (session) loadRoomsFromDatabase();
 });
 </script>  
+
+<script>
+async function loadBookingsFromDatabase() {
+  const { data, error } = await db
+    .from("bookings")
+    .select("id, room_id, guest_display_name, start_at, end_at, deposit_amount");
+
+  if (error) {
+    console.error("Ошибка загрузки броней:", error);
+    return;
+  }
+
+  const roomNames = Object.fromEntries(
+    Object.entries(window.roomIds || {}).map(
+      ([name, id]) => [id, name]
+    )
+  );
+
+  bookings = (data || []).map(b => ({
+    id: b.id,
+    room: roomNames[b.room_id] || "Неизвестный зал",
+    name: b.guest_display_name || "",
+    phone: "",
+    date: b.start_at.slice(0, 10),
+    time: new Date(b.start_at).toLocaleTimeString("ru-RU", {
+      hour: "2-digit",
+      minute: "2-digit"
+    }),
+    hours: (new Date(b.end_at) - new Date(b.start_at)) / 3600000,
+    deposit: b.deposit_amount || 0
+  }));
+
+  render();
+}
+
+db.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    loadRoomsFromDatabase().then(loadBookingsFromDatabase);
+  }
+});
+</script>  
 </body>
 </html>
