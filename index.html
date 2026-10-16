@@ -103,7 +103,7 @@ document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"))
 btn.classList.add("active");
 render();
 }
-function addBooking(){
+async function addBooking(){
 const b={
 id:Date.now(),
 room:el("room").value,
@@ -124,6 +124,8 @@ const e=s+x.hours*3600000+15*60000;
 return start<e&&end>s;
 });
 if(overlap){alert("Зал занят в это время с учётом 15 минут на уборку");return}
+const saved = await saveBookingToDatabase(b);
+if (!saved) return;
 bookings.push(b);
 el("name").value="";
 el("phone").value="";
