@@ -356,5 +356,33 @@ db.auth.onAuthStateChange((event, session) => {
   }
 });
 </script>  
+<script>
+async function saveBookingToDatabase(b) {
+  const roomId = window.roomIds?.[b.room];
+
+  if (!roomId) {
+    alert("Зал не найден в базе данных");
+    return false;
+  }
+
+  const start = new Date(b.date + "T" + b.time);
+  const end = new Date(start.getTime() + b.hours * 3600000);
+
+  const { error } = await db.from("bookings").insert({
+    room_id: roomId,
+    guest_display_name: b.name,
+    start_at: start.toISOString(),
+    end_at: end.toISOString(),
+    deposit_amount: b.deposit
+  });
+
+  if (error) {
+    alert("Ошибка сохранения брони: " + error.message);
+    return false;
+  }
+
+  return true;
+}
+</script>  
 </body>
 </html>
