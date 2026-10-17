@@ -364,12 +364,24 @@ async function saveBookingToDatabase(b) {
     alert("Зал не найден в базе данных");
     return false;
   }
-
+const { data: guest, error: guestError } = await db
+  .from("guests")
+  .insert({
+    phone: b.phone,
+    first_name: b.name
+  })
+  .select("id")
+  .single();
+  if (guestError || !guest) {
+  alert("Ошибка сохранения гостя: " + (guestError?.message || "Гость не создан"));
+  return false;
+}
   const start = new Date(b.date + "T" + b.time);
   const end = new Date(start.getTime() + b.hours * 3600000);
 
   const { error } = await db.from("bookings").insert({
-    room_id: roomId,
+  guest_id: guest.id,
+room_id: roomId,
     guest_display_name: b.name,
     start_at: start.toISOString(),
     end_at: end.toISOString(),
