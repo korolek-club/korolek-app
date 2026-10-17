@@ -150,9 +150,23 @@ async function removeBooking(id) {
   save();
   alert("Бронирование удалено");
 }
-function addHookah(){
+async function addHookah(){
 const count=Number(el("hookahCount").value);
 if(!Number.isInteger(count)||count<1){alert("Укажите количество");return}
+const room = el("hookahRoom").value;
+const roomId = window.roomIds?.[room]; 
+if (!roomId) {
+  alert("Зал не найден в базе данных");
+  return;
+}  
+const { error } = await db.from("hookah_orders").insert({
+  room_id: roomId,
+  quantity: count
+});
+if (error) {
+  alert("Не удалось сохранить кальян: " + error.message);
+  return;
+}  
 hookahs.push({id:Date.now(),room:el("hookahRoom").value,count,price:1500*count});
 save();
 }
