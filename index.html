@@ -368,7 +368,8 @@ const { data: guest, error: guestError } = await db
   .from("guests")
   .insert({
     phone: b.phone,
-    first_name: b.name
+phone_normalized: b.phone.replace(/\D/g, ""),
+first_name: b.name 
   })
   .select("id")
   .single();
