@@ -408,11 +408,11 @@ async function saveBookingToDatabase(b) {
   }
 const { data: guest, error: guestError } = await db
   .from("guests")
-  .insert({
+.upsert({
     phone: b.phone,
 phone_normalized: b.phone.replace(/\D/g, ""),
 first_name: b.name 
-  })
+}, { onConflict: "phone_normalized" })
   .select("id")
   .single();
   if (guestError || !guest) {
