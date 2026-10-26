@@ -192,6 +192,26 @@ async function addHookah(){
   });
   save();
 }
+async function loadHookahSales() {
+  const { data, error } = await db
+    .from("hookah_sales")
+    .select("id, room_id, quantity, unit_price")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    alert("Ошибка загрузки кальянов: " + error.message);
+    return;
+  }
+
+  hookahs = (data || []).map(h => ({
+    id: h.id,
+    room: rooms.find(r => window.roomIds?.[r.name] === h.room_id)?.name || "Неизвестный зал",
+    count: h.quantity,
+    price: Number(h.unit_price) * h.quantity
+  }));
+
+  render();
+}  
 function render(){
 el("roomList").innerHTML=rooms.map(r=>{
 const today=new Date().toLocaleDateString("en-CA");
@@ -418,6 +438,7 @@ room_id: roomId,
 
   return true;
 }
+loadHookahSales();  
 </script>  
 </body>
 </html>
