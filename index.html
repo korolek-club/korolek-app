@@ -151,24 +151,46 @@ async function removeBooking(id) {
   alert("Бронирование удалено");
 }
 async function addHookah(){
-const count=Number(el("hookahCount").value);
-if(!Number.isInteger(count)||count<1){alert("Укажите количество");return}
-const room = el("hookahRoom").value;
-const roomId = window.roomIds?.[room]; 
-if (!roomId) {
-  alert("Зал не найден в базе данных");
-  return;
-}  
-const { error } = await db.from("hookah_orders").insert({
-  room_id: roomId,
-  quantity: count
-});
-if (error) {
-  alert("Не удалось сохранить кальян: " + error.message);
-  return;
-}  
-hookahs.push({id:Date.now(),room:el("hookahRoom").value,count,price:1500*count});
-save();
+  const count = Number(el("hookahCount").value);
+  if (!Number.isInteger(count) || count < 1) {
+    alert("Укажите количество кальянов");
+    return;
+  }
+
+  const room = el("hookahRoom").value;
+  const roomId = window.roomIds?.[room];
+  if (!roomId) {
+    alert("Зал не найден в базе данных");
+    return;
+  }
+
+  const priceText = prompt("Цена одного кальяна в рублях:");
+  if (priceText === null) return;
+
+  const price = Number(priceText.replace(",", "."));
+  if (!Number.isFinite(price) || price < 0 || priceText.trim() === "") {
+    alert("Укажите правильную цену");
+    return;
+  }
+
+  const { error } = await db.from("hookah_sales").insert({
+    room_id: roomId,
+    quantity: count,
+    unit_price: price
+  });
+
+  if (error) {
+    alert("Не удалось сохранить кальян: " + error.message);
+    return;
+  }
+
+  hookahs.push({
+    id: Date.now(),
+    room: room,
+    count: count,
+    price: price * count
+  });
+  save();
 }
 function render(){
 el("roomList").innerHTML=rooms.map(r=>{
