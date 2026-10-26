@@ -212,6 +212,21 @@ async function loadHookahSales() {
 
   render();
 }  
+async function deleteHookah(id) {
+  if (!confirm("Удалить этот кальян?")) return;
+
+  const { error } = await db
+    .from("hookah_sales")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("Ошибка удаления: " + error.message);
+    return;
+  }
+
+  await loadHookahSales();
+}  
 function render(){
 el("roomList").innerHTML=rooms.map(r=>{
 const today=new Date().toLocaleDateString("en-CA");
@@ -225,7 +240,7 @@ return `<div class="card row"><div><b>${r.name}</b><br><small>До ${r.capacity}
 el("bookingList").innerHTML=bookings.length?bookings.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(b=>`<div class="card"><b>${safe(b.room)}</b> — ${safe(b.date)} ${safe(b.time)}<p>${safe(b.name)} · ${safe(b.phone)}</p><small>${b.hours} ч · депозит ${b.deposit} ₽</small><p><button class="danger" onclick="removeBooking(${b.id})">Удалить</button></p></div>`).join(""):"<p class='muted'>Бронирований пока нет</p>";
 const guests=[...new Map(bookings.map(b=>[b.phone,b])).values()];
 el("guestList").innerHTML=guests.length?guests.map(g=>`<div class="card"><b>${safe(g.name)}</b><br>${safe(g.phone)}</div>`).join(""):"<p class='muted'>Гостей пока нет</p>";
-el("hookahList").innerHTML=hookahs.length?hookahs.map(h=>`<div class="card">${safe(h.room)} · ${h.count} шт. · ${h.price} ₽</div>`).join(""):"<p class='muted'>Заказов пока нет</p>";
+el("hookahList").innerHTML=hookahs.length?hookahs.map(h=>`<div class="card">${safe(h.room)} · ${h.count} шт. · ${h.price} ₽ <button onclick="deleteHookah('${h.id}')">Удалить</button></div>`).join(""):"<p class='muted'>Заказов пока нет</p>";
 const total=hookahs.reduce((s,h)=>s+h.price,0);
 el("reportList").innerHTML=`<div class="card">Бронирований: <b>${bookings.length}</b></div><div class="card">Гостей: <b>${guests.length}</b></div><div class="card">Кальянов: <b>${hookahs.reduce((s,h)=>s+h.count,0)}</b></div><div class="card">Сумма кальянов: <b>${total} ₽</b></div>`;
 }
