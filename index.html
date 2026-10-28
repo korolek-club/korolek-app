@@ -89,6 +89,7 @@ const rooms=[
 ];
 let bookings=JSON.parse(localStorage.getItem("korolek_bookings")||"[]");
 let hookahs=JSON.parse(localStorage.getItem("korolek_hookahs")||"[]");
+let guestsFromDatabase = [];  
 const el=id=>document.getElementById(id);
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function save(){
@@ -238,7 +239,7 @@ return now>=start&&now<start+b.hours*3600000;
 return `<div class="card row"><div><b>${r.name}</b><br><small>До ${r.capacity} гостей</small></div><span class="${active?"busy":"free"}">${active?"● Занят":"● Свободен"}</span></div>`;
 }).join("");
 el("bookingList").innerHTML=bookings.length?bookings.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(b=>`<div class="card"><b>${safe(b.room)}</b> — ${safe(b.date)} ${safe(b.time)}<p>${safe(b.name)} · ${safe(b.phone)}</p><small>${b.hours} ч · депозит ${b.deposit} ₽</small><p><button class="danger" onclick="removeBooking(${b.id})">Удалить</button></p></div>`).join(""):"<p class='muted'>Бронирований пока нет</p>";
-const guests=[...new Map(bookings.map(b=>[b.phone,b])).values()];
+const guests = guestsFromDatabase;
 el("guestList").innerHTML=guests.length?guests.map(g=>`<div class="card"><b>${safe(g.name)}</b><br>${safe(g.phone)}</div>`).join(""):"<p class='muted'>Гостей пока нет</p>";
 el("hookahList").innerHTML=hookahs.length?hookahs.map(h=>`<div class="card">${safe(h.room)} · ${h.count} шт. · ${h.price} ₽ <button onclick="deleteHookah('${h.id}')">Удалить</button></div>`).join(""):"<p class='muted'>Заказов пока нет</p>";
 const total=hookahs.reduce((s,h)=>s+h.price,0);
@@ -413,6 +414,28 @@ db.auth.onAuthStateChange((event, session) => {
   }
 });
 </script>  
+ <script>
+async function loadGuestsFromDatabase() {
+  const { data, error } = await db
+    .from("guests")
+    .select("id, first_name, phone");
+
+  if (error) {
+    console.error("Ошибка загрузки гостей:", error);
+    return;
+  }
+
+  guestsFromDatabase = (data || []).map(g => ({
+    name: g.first_name || "Без имени",
+    phone: g.phone || ""
+  }));
+  render();
+}
+
+db.auth.onAuthStateChange((event, session) => {
+  if (session) setTimeout(loadGuestsFromDatabase, 0);
+});
+</script> 
 <script>
 async function saveBookingToDatabase(b) {
   const roomId = window.roomIds?.[b.room];
