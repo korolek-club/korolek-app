@@ -460,21 +460,22 @@ first_name: b.name
   const start = new Date(b.date + "T" + b.time);
   const end = new Date(start.getTime() + b.hours * 3600000);
 
-  const { error } = await db.from("bookings").insert({
+ const { data: savedBooking, error }= await db.from("bookings").insert({
   guest_id: guest.id,
 room_id: roomId,
     guest_display_name: b.name,
     start_at: start.toISOString(),
     end_at: end.toISOString(),
     deposit_amount: b.deposit
-  });
+}).select("id").single();
 
   if (error) {
     alert("Ошибка сохранения брони: " + error.message);
     return false;
   }
 
-  return true;
+  b.id = savedBooking.id;
+return true;
 }
 loadHookahSales();  
 </script>  
