@@ -134,7 +134,7 @@ save();
 alert("Бронь сохранена");
 }
 
-async function removeBooking(id) {
+window.removeBooking = async function(id) {
   if (!confirm("Удалить бронирование?")) return;
 
   const { error } = await db
