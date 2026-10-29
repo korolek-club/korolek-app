@@ -410,7 +410,7 @@ async function loadBookingsFromDatabase() {
 
 db.auth.onAuthStateChange((event, session) => {
   if (session) {
-    loadRoomsFromDatabase().then(loadBookingsFromDatabase);
+loadRoomsFromDatabase().then(() => Promise.all([loadBookingsFromDatabase(), loadHookahSales()]));
   }
 });
 </script>  
