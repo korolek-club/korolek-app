@@ -137,7 +137,7 @@ alert("Бронь сохранена");
 window.removeBooking = async function(id) {
   if (!confirm("Удалить бронирование?")) return;
 
-  const { error } = await db
+const { error } = await window.db
     .from("bookings")
     .delete()
     .eq("id", id);
@@ -238,7 +238,7 @@ return now>=start&&now<start+b.hours*3600000;
 });
 return `<div class="card row"><div><b>${r.name}</b><br><small>До ${r.capacity} гостей</small></div><span class="${active?"busy":"free"}">${active?"● Занят":"● Свободен"}</span></div>`;
 }).join("");
-el("bookingList").innerHTML=bookings.length?bookings.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(b=>`<div class="card"><b>${safe(b.room)}</b> — ${safe(b.date)} ${safe(b.time)}<p>${safe(b.name)} · ${safe(b.phone)}</p><small>${b.hours} ч · депозит ${b.deposit} ₽</small><p><button class="danger" onclick="removeBooking(${b.id})">Удалить</button></p></div>`).join(""):"<p class='muted'>Бронирований пока нет</p>";
+el("bookingList").innerHTML=bookings.length?bookings.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(b=>`<div class="card"><b>${safe(b.room)}</b> — ${safe(b.date)} ${safe(b.time)}<p>${safe(b.name)} · ${safe(b.phone)}</p><small>${b.hours} ч · депозит ${b.deposit} ₽</small><p><button class="danger" onclick="removeBooking('${b.id}')">Удалить</button></p></div>`).join(""):"<p class='muted'>Бронирований пока нет</p>";
 const guests = guestsFromDatabase;
 el("guestList").innerHTML=guests.length?guests.map(g=>`<div class="card"><b>${safe(g.name)}</b><br>${safe(g.phone)}</div>`).join(""):"<p class='muted'>Гостей пока нет</p>";
 el("hookahList").innerHTML=hookahs.length?hookahs.map(h=>`<div class="card">${safe(h.room)} · ${h.count} шт. · ${h.price} ₽ <button onclick="deleteHookah('${h.id}')">Удалить</button></div>`).join(""):"<p class='muted'>Заказов пока нет</p>";
@@ -253,7 +253,7 @@ el("date").value=new Date().toLocaleDateString("en-CA");
 render();
 </script>
 <script>
-const db = window.supabase.createClient(
+window.db = window.supabase.createClient(
   window.KOROLEK_CONFIG.supabaseUrl,
   window.KOROLEK_CONFIG.supabaseAnonKey
 );
