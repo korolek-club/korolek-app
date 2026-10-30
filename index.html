@@ -378,7 +378,7 @@ db.auth.onAuthStateChange((event, session) => {
 async function loadBookingsFromDatabase() {
   const { data, error } = await db
     .from("bookings")
-    .select("id, room_id, guest_display_name, start_at, end_at, deposit_amount");
+    .select("id,guest_id, room_id, guest_display_name, start_at, end_at, deposit_amount");
 
   if (error) {
     console.error("Ошибка загрузки броней:", error);
